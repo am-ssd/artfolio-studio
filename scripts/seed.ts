@@ -20,7 +20,51 @@ const caseStudyPath = path.resolve(
 
 const client = getCliClient({apiVersion: '2026-05-15'})
 
-type Category = 'ecommerce' | 'game' | 'web3' | 'other'
+type CategorySlug = 'ecommerce' | 'game' | 'web3' | 'other'
+
+const CATEGORY_IDS: Record<CategorySlug, string> = {
+  ecommerce: 'category.ecommerce',
+  game: 'category.game',
+  web3: 'category.web3',
+  other: 'category.other',
+}
+
+const DEFAULT_CATEGORIES: Array<{
+  id: string
+  title: string
+  slug: CategorySlug
+  description: string
+  order: number
+}> = [
+  {
+    id: CATEGORY_IDS.ecommerce,
+    title: 'E-commerce',
+    slug: 'ecommerce',
+    description: 'Storefronts, product pages, and shopping flows',
+    order: 1,
+  },
+  {
+    id: CATEGORY_IDS.game,
+    title: 'Game',
+    slug: 'game',
+    description: 'Game UI, hubs, and interactive experiences',
+    order: 2,
+  },
+  {
+    id: CATEGORY_IDS.web3,
+    title: 'Web 3',
+    slug: 'web3',
+    description: 'Dashboards, wallets, and on-chain products',
+    order: 3,
+  },
+  {
+    id: CATEGORY_IDS.other,
+    title: 'Other',
+    slug: 'other',
+    description: 'Brand sites, tools, and custom builds',
+    order: 4,
+  },
+]
 
 const DEFAULT_SUMMARY =
   'We are a creative design studio crafting distinctive brand identities that cut through noise, command attention, and endure. From strategy to execution, we transform ideas into powerful visual systems that connect, resonate, and scale.'
@@ -29,7 +73,7 @@ const PROJECTS: Array<{
   id: string
   title: string
   slug: string
-  category: Category
+  category: CategorySlug
   image: string
   order: number
   url?: string
@@ -203,7 +247,29 @@ async function uploadCaseStudy() {
   return uploadImage(caseStudyPath, 'freeze-frame-landing.png')
 }
 
+async function seedCategories() {
+  for (const category of DEFAULT_CATEGORIES) {
+    await client.createOrReplace({
+      _id: category.id,
+      _type: 'category',
+      title: category.title,
+      slug: {_type: 'slug', current: category.slug},
+      description: category.description,
+      order: category.order,
+    })
+    console.log(`✓ Category ${category.title}`)
+  }
+}
+
 async function seedSiteSettings() {
+  console.log('  uploading hero mockups for Site Settings...')
+  const [topLeft, topRight, bottomLeft, bottomRight] = await Promise.all([
+    uploadHeroImage('1.png'),
+    uploadHeroImage('2.png'),
+    uploadHeroImage('401.png'),
+    uploadHeroImage('499.png'),
+  ])
+
   await client.createOrReplace({
     _id: 'siteSettings',
     _type: 'siteSettings',
@@ -218,6 +284,26 @@ async function seedSiteSettings() {
     heroSubtext:
       'Our Template is full Perfect for all device. You can visit our template all device easily.',
     categoryBadge: '300+ category',
+    heroTopLeft: {
+      _type: 'image',
+      asset: {_type: 'reference', _ref: topLeft},
+      alt: 'Hero top-left mockup',
+    },
+    heroTopRight: {
+      _type: 'image',
+      asset: {_type: 'reference', _ref: topRight},
+      alt: 'Hero top-right mockup',
+    },
+    heroBottomLeft: {
+      _type: 'image',
+      asset: {_type: 'reference', _ref: bottomLeft},
+      alt: 'Hero bottom-left mockup',
+    },
+    heroBottomRight: {
+      _type: 'image',
+      asset: {_type: 'reference', _ref: bottomRight},
+      alt: 'Hero bottom-right mockup',
+    },
   })
   console.log('✓ Site Settings')
 }
@@ -242,7 +328,10 @@ async function seedProjects() {
       _type: 'project',
       title: project.title,
       slug: {_type: 'slug', current: project.slug},
-      category: project.category,
+      category: {
+        _type: 'reference',
+        _ref: CATEGORY_IDS[project.category],
+      },
       thumbnail: {
         _type: 'image',
         asset: {_type: 'reference', _ref: assetId},
@@ -250,11 +339,14 @@ async function seedProjects() {
       },
       summary: project.summary ?? DEFAULT_SUMMARY,
       url: project.url ?? 'https://www.axoper.com/',
-      caseStudyImage: {
-        _type: 'image',
-        asset: {_type: 'reference', _ref: caseStudyAssetId},
-        alt: `${project.title} landing page`,
-      },
+      caseStudyImages: [
+        {
+          _type: 'image',
+          _key: 'landing-1',
+          asset: {_type: 'reference', _ref: caseStudyAssetId},
+          alt: `${project.title} landing page`,
+        },
+      ],
       publishedAt: new Date(Date.UTC(2026, 0, 16 - project.order)).toISOString(),
       order: project.order,
     })
@@ -266,6 +358,7 @@ async function main() {
   console.log(`Seeding ${client.config().projectId}/${client.config().dataset}...`)
   console.log(`Hero assets from: ${heroAssetsRoot}`)
   console.log(`Case study from: ${caseStudyPath}`)
+  await seedCategories()
   await seedSiteSettings()
   await seedProjects()
   console.log('Done. Open Studio and refresh the web app.')

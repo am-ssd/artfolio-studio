@@ -1,4 +1,5 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
+import {CaseStudyImagesInput} from './components/CaseStudyImagesInput'
 
 export const projectType = defineType({
   name: 'project',
@@ -24,17 +25,11 @@ export const projectType = defineType({
     }),
     defineField({
       name: 'category',
-      type: 'string',
+      title: 'Category',
+      type: 'reference',
       group: 'card',
-      options: {
-        list: [
-          {title: 'E-commerce', value: 'ecommerce'},
-          {title: 'Game', value: 'game'},
-          {title: 'Web 3', value: 'web3'},
-          {title: 'Other', value: 'other'},
-        ],
-        layout: 'radio',
-      },
+      to: [{type: 'category'}],
+      description: 'Homepage category card this project belongs to.',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -77,7 +72,7 @@ export const projectType = defineType({
       group: 'modal',
       rows: 4,
       description:
-        'Intro copy under the title in the project details modal (above the landing page image).',
+        'Intro copy under the title in the project details modal (above the landing page images).',
       validation: (rule) => rule.max(600),
     }),
     defineField({
@@ -93,21 +88,42 @@ export const projectType = defineType({
         }),
     }),
     defineField({
-      name: 'caseStudyImage',
-      title: 'Landing page image',
-      type: 'image',
+      name: 'caseStudyImages',
+      title: 'Landing page images',
+      type: 'array',
       group: 'modal',
       description:
-        'Full-length screenshot of the designed website. Users scroll this image inside the modal. Prefer a high-resolution export (2000px+ wide) for sharpness.',
-      options: {hotspot: true},
-      fields: [
-        defineField({
-          name: 'alt',
-          type: 'string',
-          title: 'Alternative text',
-          description: 'Describe the landing page for accessibility.',
+        'Full-length screenshots of the designed website, stacked in order. Users scroll through them continuously inside the modal. Prefer high-resolution exports (2000px+ wide) for sharpness.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true},
+          fields: [
+            defineField({
+              name: 'alt',
+              type: 'string',
+              title: 'Alternative text',
+              description: 'Describe this section of the landing page for accessibility.',
+            }),
+          ],
         }),
       ],
+      options: {
+        layout: 'grid',
+      },
+      components: {
+        input: CaseStudyImagesInput,
+      },
+    }),
+    // Temporary: present so Studio does not flag stored legacy data as "Unknown field".
+    // CaseStudyImagesInput copies any value into caseStudyImages and unsets this field.
+    defineField({
+      name: 'caseStudyImage',
+      title: 'Legacy landing page image',
+      type: 'image',
+      group: 'modal',
+      hidden: true,
+      readOnly: true,
     }),
   ],
   orderings: [
@@ -126,16 +142,17 @@ export const projectType = defineType({
     select: {
       title: 'title',
       media: 'thumbnail',
-      category: 'category',
-      hasCaseStudy: 'caseStudyImage.asset',
+      categoryTitle: 'category->title',
+      caseStudyImages: 'caseStudyImages',
     },
-    prepare({title, media, category, hasCaseStudy}) {
-      const categoryLabel = typeof category === 'string' ? category : 'project'
-      const modalStatus = hasCaseStudy ? 'modal ready' : 'no landing image'
+    prepare({title, media, categoryTitle, caseStudyImages}) {
+      const count = Array.isArray(caseStudyImages) ? caseStudyImages.length : 0
+      const modalStatus =
+        count > 0 ? `${count} landing image${count === 1 ? '' : 's'}` : 'no landing images'
       return {
         title,
         media,
-        subtitle: `${categoryLabel} · ${modalStatus}`,
+        subtitle: `${categoryTitle || 'No category'} · ${modalStatus}`,
       }
     },
   },

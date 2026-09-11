@@ -17,6 +17,10 @@ const caseStudyPath = path.resolve(
   __dirname,
   '../../web/public/assets/case-studies/freeze-frame-landing.png',
 )
+const contactImageCandidates = [
+  path.resolve(__dirname, '../../../artfolio-frontend/web/public/assets/contact.png'),
+  path.resolve(__dirname, '../../web/public/assets/contact.png'),
+]
 
 const client = getCliClient({apiVersion: '2026-05-15'})
 
@@ -270,6 +274,20 @@ async function seedSiteSettings() {
     uploadHeroImage('499.png'),
   ])
 
+  const contactPath = contactImageCandidates.find((candidate) => existsSync(candidate))
+  let contactImage: {_type: 'image'; asset: {_type: 'reference'; _ref: string}; alt: string} | undefined
+  if (contactPath) {
+    console.log('  uploading contact illustration...')
+    const contactAssetId = await uploadImage(contactPath, 'contact.png')
+    contactImage = {
+      _type: 'image',
+      asset: {_type: 'reference', _ref: contactAssetId},
+      alt: 'Contact illustration',
+    }
+  } else {
+    console.warn('  skipped contact illustration (contact.png not found)')
+  }
+
   await client.createOrReplace({
     _id: 'siteSettings',
     _type: 'siteSettings',
@@ -304,6 +322,7 @@ async function seedSiteSettings() {
       asset: {_type: 'reference', _ref: bottomRight},
       alt: 'Hero bottom-right mockup',
     },
+    ...(contactImage ? {contactImage} : {}),
   })
   console.log('✓ Site Settings')
 }

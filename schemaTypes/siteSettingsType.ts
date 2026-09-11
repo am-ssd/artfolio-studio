@@ -1,11 +1,16 @@
 import {defineField, defineType} from 'sanity'
 
-const heroImageField = (name: string, title: string, description: string) =>
+const imageWithAlt = (
+  name: string,
+  title: string,
+  group: 'hero' | 'contact',
+  description: string,
+) =>
   defineField({
     name,
     title,
     type: 'image',
-    group: 'hero',
+    group,
     description,
     options: {hotspot: true},
     fields: [
@@ -24,6 +29,7 @@ export const siteSettingsType = defineType({
   groups: [
     {name: 'profile', title: 'Profile', default: true},
     {name: 'hero', title: 'Hero'},
+    {name: 'contact', title: 'Contact'},
   ],
   fields: [
     defineField({
@@ -93,25 +99,35 @@ export const siteSettingsType = defineType({
       group: 'hero',
       initialValue: '300+ category',
     }),
-    heroImageField(
+    imageWithAlt(
       'heroTopLeft',
       'Top-left mockup',
+      'hero',
       'Desktop: upper-left floating mockup. Mobile: top-left in the 2×2 grid.',
     ),
-    heroImageField(
+    imageWithAlt(
       'heroTopRight',
       'Top-right mockup',
+      'hero',
       'Desktop: upper-right floating mockup. Mobile: top-right in the 2×2 grid.',
     ),
-    heroImageField(
+    imageWithAlt(
       'heroBottomLeft',
       'Bottom-left mockup',
+      'hero',
       'Desktop: lower-left floating mockup. Mobile: bottom-left in the 2×2 grid.',
     ),
-    heroImageField(
+    imageWithAlt(
       'heroBottomRight',
       'Bottom-right mockup',
+      'hero',
       'Desktop: lower-right floating mockup (with category badge). Mobile: bottom-right in the 2×2 grid.',
+    ),
+    imageWithAlt(
+      'contactImage',
+      'Contact illustration',
+      'contact',
+      'Large illustration shown on the left of the contact section.',
     ),
   ],
   preview: {

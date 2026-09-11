@@ -142,7 +142,7 @@ export const projectType = defineType({
     select: {
       title: 'title',
       media: 'thumbnail',
-      categoryTitle: 'category->title',
+      categoryTitle: 'category.title',
       caseStudyImages: 'caseStudyImages',
     },
     prepare({title, media, categoryTitle, caseStudyImages}) {

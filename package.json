@@ -18,6 +18,8 @@
     "sanity"
   ],
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@sanity/vision": "^6.8.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

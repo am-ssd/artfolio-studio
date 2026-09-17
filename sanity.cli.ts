@@ -13,6 +13,13 @@ export default defineCliConfig({
     hostname: process.env.SANITY_STUDIO_SERVER_HOSTNAME!,
     port: Number(process.env.SANITY_STUDIO_SERVER_PORT),
   },
+  vite: (config) => ({
+    ...config,
+    optimizeDeps: {
+      ...config.optimizeDeps,
+      exclude: [...(config.optimizeDeps?.exclude ?? []), '@ffmpeg/ffmpeg', '@ffmpeg/util'],
+    },
+  }),
   deployment: {
     /**
      * Enable auto-updates for studios.

@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {CaseStudyImagesInput} from './components/CaseStudyImagesInput'
+import {CompressedVideoInput} from './components/CompressedVideoInput'
 
 export const projectType = defineType({
   name: 'project',
@@ -72,7 +73,7 @@ export const projectType = defineType({
       group: 'modal',
       rows: 4,
       description:
-        'Intro copy under the title in the project details modal (above the landing page images).',
+        'Intro copy under the title in the project details modal (above the landing page media).',
       validation: (rule) => rule.max(600),
     }),
     defineField({
@@ -89,14 +90,15 @@ export const projectType = defineType({
     }),
     defineField({
       name: 'caseStudyImages',
-      title: 'Landing page images',
+      title: 'Landing page media',
       type: 'array',
       group: 'modal',
       description:
-        'Full-length screenshots of the designed website, stacked in order. Users scroll through them continuously inside the modal. Prefer high-resolution exports (2000px+ wide) for sharpness.',
+        'Screenshots and videos stacked in order. Users scroll through them continuously in the modal. Images ~1400–1600px wide; videos are auto-compressed on upload for faster loading.',
       of: [
         defineArrayMember({
           type: 'image',
+          title: 'Image',
           options: {hotspot: true},
           fields: [
             defineField({
@@ -104,6 +106,27 @@ export const projectType = defineType({
               type: 'string',
               title: 'Alternative text',
               description: 'Describe this section of the landing page for accessibility.',
+            }),
+          ],
+        }),
+        defineArrayMember({
+          name: 'video',
+          title: 'Video',
+          type: 'file',
+          options: {
+            accept: 'video/*',
+          },
+          description:
+            'Automatically compressed on upload (max 1280px wide H.264) for faster modal loading.',
+          components: {
+            input: CompressedVideoInput,
+          },
+          fields: [
+            defineField({
+              name: 'alt',
+              type: 'string',
+              title: 'Accessible description',
+              description: 'Short description of the video for accessibility.',
             }),
           ],
         }),
@@ -148,7 +171,7 @@ export const projectType = defineType({
     prepare({title, media, categoryTitle, caseStudyImages}) {
       const count = Array.isArray(caseStudyImages) ? caseStudyImages.length : 0
       const modalStatus =
-        count > 0 ? `${count} landing image${count === 1 ? '' : 's'}` : 'no landing images'
+        count > 0 ? `${count} landing item${count === 1 ? '' : 's'}` : 'no landing media'
       return {
         title,
         media,

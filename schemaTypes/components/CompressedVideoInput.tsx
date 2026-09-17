@@ -41,6 +41,25 @@ export function CompressedVideoInput(props: ObjectInputProps) {
       return
     }
 
+    // Prefer building the public CDN URL from the file ref (works even when
+    // asset->url queries lag or fail). Fall back to a document lookup.
+    const fromRef = (() => {
+      if (!assetRef.startsWith('file-')) return null
+      const {projectId, dataset} = client.config()
+      if (!projectId || !dataset) return null
+      const body = assetRef.slice('file-'.length)
+      const dash = body.lastIndexOf('-')
+      if (dash <= 0) return null
+      const id = body.slice(0, dash)
+      const ext = body.slice(dash + 1).toLowerCase()
+      return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
+    })()
+
+    if (fromRef) {
+      setPreviewUrl(fromRef)
+      return
+    }
+
     client
       .fetch<string | null>(`*[_id == $id][0].url`, {id: assetRef})
       .then((url) => {

@@ -3,7 +3,7 @@ import {defineField, defineType} from 'sanity'
 const imageWithAlt = (
   name: string,
   title: string,
-  group: 'hero' | 'contact',
+  group: 'profile' | 'hero' | 'contact',
   description: string,
 ) =>
   defineField({
@@ -32,6 +32,12 @@ export const siteSettingsType = defineType({
     {name: 'contact', title: 'Contact'},
   ],
   fields: [
+    imageWithAlt(
+      'logo',
+      'Site logo',
+      'profile',
+      'Shown in the header, hero, floating contact card, and project modal. Prefer a square PNG/SVG-style mark on a transparent background.',
+    ),
     defineField({
       name: 'name',
       title: 'Display name',

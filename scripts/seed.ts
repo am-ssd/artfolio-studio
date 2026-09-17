@@ -21,6 +21,10 @@ const contactImageCandidates = [
   path.resolve(__dirname, '../../../artfolio-frontend/web/public/assets/contact.png'),
   path.resolve(__dirname, '../../web/public/assets/contact.png'),
 ]
+const logoImageCandidates = [
+  path.resolve(__dirname, '../../../artfolio-frontend/web/public/assets/logo.png'),
+  path.resolve(__dirname, '../../web/public/assets/logo.png'),
+]
 
 const client = getCliClient({apiVersion: '2026-05-15'})
 
@@ -288,6 +292,20 @@ async function seedSiteSettings() {
     console.warn('  skipped contact illustration (contact.png not found)')
   }
 
+  const logoPath = logoImageCandidates.find((candidate) => existsSync(candidate))
+  let logo: {_type: 'image'; asset: {_type: 'reference'; _ref: string}; alt: string} | undefined
+  if (logoPath) {
+    console.log('  uploading site logo...')
+    const logoAssetId = await uploadImage(logoPath, 'logo.png')
+    logo = {
+      _type: 'image',
+      asset: {_type: 'reference', _ref: logoAssetId},
+      alt: 'Artfolio logo',
+    }
+  } else {
+    console.warn('  skipped site logo (logo.png not found)')
+  }
+
   await client.createOrReplace({
     _id: 'siteSettings',
     _type: 'siteSettings',
@@ -302,6 +320,7 @@ async function seedSiteSettings() {
     heroSubtext:
       'Our Template is full Perfect for all device. You can visit our template all device easily.',
     categoryBadge: '300+ category',
+    ...(logo ? {logo} : {}),
     heroTopLeft: {
       _type: 'image',
       asset: {_type: 'reference', _ref: topLeft},
